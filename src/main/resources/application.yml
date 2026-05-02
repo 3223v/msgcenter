@@ -1,0 +1,54 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: msgcenter
+
+  # ========== 数据库配置 ==========
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/msgcenter?serverTimezone=GMT%2B8&characterEncoding=utf8&useSSL=false
+    username: root
+    password: root
+
+  # ========== Redis 配置 ==========
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+      jedis:
+        pool:
+          max-active: 8
+
+  # ========== Kafka 配置 ==========
+  kafka:
+    bootstrap-servers: 127.0.0.1:9092
+    producer:
+      retries: 0
+      batch-size: 16384
+      buffer-memory: 33554432
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: 1
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+# ========== MyBatis-Plus 配置 ==========
+mybatis-plus:
+  type-aliases-package: org.mttk.msgcenter.model.entity
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# ========== 业务配置 ==========
+send-msg-conf:
+  mysql-as-mq: true
+  open-cache: true
+  max-retry-count: 5
+  email-host: smtp.qq.com
+  email-port: 587
+  email-account: xxx
+  email-auth-code: xxx
