@@ -1,5 +1,6 @@
 package org.mttk.msgcenter.model.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -13,18 +14,19 @@ public class MsgRecordModel {
 
     private String sourceId;
 
-    private int channel;
+    private Integer channel;
 
     private String subject;
 
+    @TableField("`to`")
     private String to;
 
     private String templateId;
 
     private String templateData;
 
-    private int status;
+    private Integer status;
 
-    private int retryCount; //重试次数，默认为 0
+    private Integer retryCount;
 
 }

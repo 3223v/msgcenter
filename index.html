@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MsgCenter 接口调试</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:#f0f2f5;color:#333;min-height:100vh}
+.header{background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.15);position:sticky;top:0;z-index:100}
+.header h1{font-size:22px;font-weight:600;letter-spacing:1px}
+.header .subtitle{font-size:13px;opacity:.85;margin-top:4px}
+.server-cfg{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);padding:8px 16px;border-radius:8px}
+.server-cfg label{font-size:13px;white-space:nowrap}
+.server-cfg input{background:rgba(255,255,255,.9);border:none;padding:6px 10px;border-radius:4px;font-size:13px;width:160px;outline:none}
+.server-cfg input:focus{box-shadow:0 0 0 2px rgba(255,255,255,.5)}
+.dot{width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0}
+.dot.on{background:#4caf50;box-shadow:0 0 6px rgba(76,175,80,.6)}
+.dot.off{background:#f44336}
+.container{display:flex;gap:0;max-width:1400px;margin:0 auto;padding:24px;min-height:calc(100vh - 80px)}
+.sidebar{width:220px;flex-shrink:0}
+.sidebar-inner{position:sticky;top:104px}
+.nav-g{margin-bottom:16px}
+.nav-gt{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#999;padding:0 12px;margin-bottom:6px;font-weight:600}
+.nav-i{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:14px;color:#555;transition:all .2s;margin-bottom:2px}
+.nav-i:hover{background:#e8eaed}
+.nav-i.a{background:#1a73e8;color:#fff;box-shadow:0 2px 6px rgba(26,115,232,.3)}
+.badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;min-width:36px;text-align:center;flex-shrink:0}
+.bg{background:#e8f5e9;color:#2e7d32}
+.bp{background:#fff3e0;color:#e65100}
+.nav-i.a .bg,.nav-i.a .bp{background:rgba(255,255,255,.25);color:#fff}
+.main{flex:1;min-width:0}
+.card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:20px;overflow:hidden}
+.card-h{padding:16px 24px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:12px}
+.card-h .m{font-size:12px;font-weight:700;padding:4px 10px;border-radius:4px}
+.card-h .p{font-size:14px;font-family:'SF Mono','Fira Code',monospace;color:#555}
+.card-h .d{font-size:12px;color:#999;margin-left:auto}
+.card-b{padding:24px}
+.fr{margin-bottom:16px}
+.fr label{display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:6px}
+.fr label .r{color:#f44336;margin-left:2px}
+.fr label .h{font-weight:400;color:#aaa;font-size:12px;margin-left:8px}
+.fr input,.fr select,.fr textarea{width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;font-family:inherit;transition:border-color .2s;outline:none}
+.fr input:focus,.fr select:focus,.fr textarea:focus{border-color:#1a73e8;box-shadow:0 0 0 3px rgba(26,115,232,.1)}
+.fr textarea{resize:vertical;min-height:80px;font-family:'SF Mono','Fira Code',monospace;font-size:13px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 24px;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-p{background:#1a73e8;color:#fff}
+.btn-p:hover{background:#1557b0;box-shadow:0 2px 8px rgba(26,115,232,.3)}
+.btn-p:active{transform:scale(.98)}
+.btn-p:disabled{background:#93b8f0;cursor:not-allowed}
+.br{display:flex;gap:12px;align-items:center;margin-top:8px}
+.rp{margin-top:20px}
+.rh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.rh h4{font-size:14px;color:#555}
+.sb{font-size:12px;padding:3px 10px;border-radius:12px;font-weight:600}
+.sb.ok{background:#e8f5e9;color:#2e7d32}
+.sb.er{background:#ffebee;color:#c62828}
+.sb.ld{background:#e3f2fd;color:#1565c0}
+.rb{background:#1e1e1e;color:#d4d4d4;border-radius:8px;padding:16px;font-family:'SF Mono','Fira Code',monospace;font-size:13px;line-height:1.6;overflow-x:auto;max-height:500px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+.rm{display:flex;gap:16px;font-size:12px;color:#999;margin-top:8px}
+.tw{overflow-x:auto;margin-top:12px}
+.dt{width:100%;border-collapse:collapse;font-size:13px}
+.dt th{background:#f5f5f5;padding:8px 12px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #e0e0e0;white-space:nowrap}
+.dt td{padding:8px 12px;border-bottom:1px solid #f0f0f0;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dt tr:hover td{background:#f9f9f9}
+.pg{display:flex;align-items:center;gap:8px;margin-top:12px;justify-content:center}
+.pg button{padding:6px 14px;border:1px solid #ddd;background:#fff;border-radius:4px;cursor:pointer;font-size:13px}
+.pg button:hover{background:#f5f5f5}
+.pg button:disabled{opacity:.4;cursor:not-allowed}
+.pg .pi{font-size:13px;color:#666}
+.td-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.td-row input{flex:1}
+.btn-rm{background:#ffebee;color:#c62828;border:none;border-radius:4px;padding:6px 10px;cursor:pointer;font-size:16px;line-height:1}
+.btn-rm:hover{background:#ffcdd2}
+.btn-add{background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:4px;padding:6px 12px;cursor:pointer;font-size:13px}
+.btn-add:hover{background:#c8e6c9}
+.hidden{display:none}
+.toast{position:fixed;top:20px:right:20px;padding:12px 20px;border-radius:8px;color:#fff;font-size:14px;z-index:1000;animation:si .3s ease}
+.toast.ok{background:#2e7d32}
+.toast.er{background:#c62828}
+@keyframes si{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
+.sec{display:none}
+.sec.a{display:block}
+@media(max-width:900px){
+  .container{flex-direction:column;padding:12px}
+  .sidebar{width:100%}
+  .sidebar-inner{position:static;display:flex;overflow-x:auto;gap:4px;padding-bottom:12px}
+  .nav-g{margin-bottom:0}
+  .nav-gt{display:none}
+  .nav-i{white-space:nowrap;padding:8px 12px;font-size:13px}
+  .fg{grid-template-columns:1fr}
+  .header{flex-direction:column;gap:12px;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>MsgCenter</h1>
+    <div class="subtitle">消息中心接口调试工具</div>
+  </div>
+  <div class="server-cfg">
+    <label>服务地址</label>
+    <input type="text" id="sHost" value="localhost" placeholder="IP / 域名">
+    <label>:</label>
+    <input type="text" id="sPort" value="8080" placeholder="端口" style="width:70px">
+    <button class="btn btn-p" style="padding:6px 14px;font-size:12px" onclick="ping()">测试连接</button>
+    <div class="dot" id="dot" title="未检测"></div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="sidebar">
+    <div class="sidebar-inner">
+      <div class="nav-g">
+        <div class="nav-gt">模板管理</div>
+        <div class="nav-i a" data-t="s1" onclick="nav(this)"><span class="badge bp">POST</span><span>创建模板</span></div>
+        <div class="nav-i" data-t="s2" onclick="nav(this)"><span class="badge bg">GET</span><span>获取模板</span></div>
+        <div class="nav-i" data-t="s3" onclick="nav(this)"><span class="badge bp">POST</span><span>更新模板</span></div>
+        <div class="nav-i" data-t="s4" onclick="nav(this)"><span class="badge bp">POST</span><span>删除模板</span></div>
+        <div class="nav-i" data-t="s5" onclick="nav(this)"><span class="badge bg">GET</span><span>模板列表</span></div>
+      </div>
+      <div class="nav-g">
+        <div class="nav-gt">消息发送</div>
+        <div class="nav-i" data-t="s6" onclick="nav(this)"><span class="badge bp">POST</span><span>发送消息</span></div>
+      </div>
+      <div class="nav-g">
+        <div class="nav-gt">消息记录</div>
+        <div class="nav-i" data-t="s7" onclick="nav(this)"><span class="badge bg">GET</span><span>查询记录</span></div>
+        <div class="nav-i" data-t="s8" onclick="nav(this)"><span class="badge bg">GET</span><span>记录列表</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- 创建模板 -->
+    <div class="sec a" id="s1">
+      <div class="card">
+        <div class="card-h"><span class="m bp">POST</span><span class="p">/msg/create_template</span><span class="d">创建消息模板</span></div>
+        <div class="card-b">
+          <div class="fg">
+            <div class="fr"><label>模板名称 <span class="r">*</span></label><input id="c_name" value="欢迎邮件模板"></div>
+            <div class="fr"><label>签名</label><input id="c_sign" value="MsgCenter"></div>
+            <div class="fr"><label>业务ID <span class="r">*</span></label><input id="c_src" value="user-service"></div>
+            <div class="fr"><label>推送渠道 <span class="r">*</span></label><select id="c_ch"><option value="1">邮件</option><option value="2">短信</option><option value="3">飞书</option></select></div>
+          </div>
+          <div class="fr"><label>消息主题</label><input id="c_sub" value="欢迎注册"></div>
+          <div class="fr"><label>模板内容 <span class="h">支持 ${变量名}</span></label><textarea id="c_ct">亲爱的 ${userName}，欢迎加入我们的平台！</textarea></div>
+          <div class="br"><button class="btn btn-p" onclick="api_create()">发送请求</button></div>
+          <div class="rp" id="r1"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 获取模板 -->
+    <div class="sec" id="s2">
+      <div class="card">
+        <div class="card-h"><span class="m bg">GET</span><span class="p">/msg/get_template</span><span class="d">根据模板ID获取详情</span></div>
+        <div class="card-b">
+          <div class="fr"><label>模板ID <span class="r">*</span></label><input id="g_tid" placeholder="输入模板ID"></div>
+          <div class="br"><button class="btn btn-p" onclick="api_get()">发送请求</button></div>
+          <div class="rp" id="r2"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 更新模板 -->
+    <div class="sec" id="s3">
+      <div class="card">
+        <div class="card-h"><span class="m bp">POST</span><span class="p">/msg/update_template</span><span class="d">更新模板信息</span></div>
+        <div class="card-b">
+          <div class="fg">
+            <div class="fr"><label>数据库ID <span class="r">*</span> <span class="h">主键</span></label><input id="u_id" type="number" placeholder="主键ID"></div>
+            <div class="fr"><label>模板ID <span class="r">*</span></label><input id="u_tid" placeholder="templateId"></div>
+            <div class="fr"><label>模板名称</label><input id="u_name" placeholder="留空不修改"></div>
+            <div class="fr"><label>签名</label><input id="u_sign" placeholder="留空不修改"></div>
+            <div class="fr"><label>业务ID</label><input id="u_src" placeholder="留空不修改"></div>
+            <div class="fr"><label>推送渠道</label><select id="u_ch"><option value="">不修改</option><option value="1">邮件</option><option value="2">短信</option><option value="3">飞书</option></select></div>
+            <div class="fr"><label>状态</label><select id="u_st"><option value="">不修改</option><option value="1">待审核</option><option value="2">正常</option></select></div>
+          </div>
+          <div class="fr"><label>消息主题</label><input id="u_sub" placeholder="留空不修改"></div>
+          <div class="fr"><label>模板内容</label><textarea id="u_ct" placeholder="留空不修改"></textarea></div>
+          <div class="br"><button class="btn btn-p" onclick="api_update()">发送请求</button></div>
+          <div class="rp" id="r3"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 删除模板 -->
+    <div class="sec" id="s4">
+      <div class="card">
+        <div class="card-h"><span class="m bp">POST</span><span class="p">/msg/delete_template</span><span class="d">删除模板</span></div>
+        <div class="card-b">
+          <div class="fr"><label>模板ID <span class="r">*</span></label><input id="d_tid" placeholder="输入要删除的模板ID"></div>
+          <div class="br"><button class="btn btn-p" onclick="api_del()">发送请求</button></div>
+          <div class="rp" id="r4"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 模板列表 -->
+    <div class="sec" id="s5">
+      <div class="card">
+        <div class="card-h"><span class="m bg">GET</span><span class="p">/msg/get_template_list</span><span class="d">分页获取模板列表</span></div>
+        <div class="card-b">
+          <div class="fg">
+            <div class="fr"><label>页码</label><input id="tl_pn" type="number" value="1" min="1"></div>
+            <div class="fr"><label>每页条数</label><input id="tl_ps" type="number" value="10" min="1" max="100"></div>
+          </div>
+          <div class="br"><button class="btn btn-p" onclick="api_tlist()">发送请求</button></div>
+          <div class="rp" id="r5"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 发送消息 -->
+    <div class="sec" id="s6">
+      <div class="card">
+        <div class="card-h"><span class="m bp">POST</span><span class="p">/msg/send_msg</span><span class="d">发送消息（支持定时）</span></div>
+        <div class="card-b">
+          <div class="fg">
+            <div class="fr"><label>接收方 <span class="r">*</span></label><input id="sm_to" value="user@example.com" placeholder="邮箱/手机号/飞书ID"></div>
+            <div class="fr"><label>消息主题</label><input id="sm_sub" value="欢迎注册"></div>
+            <div class="fr"><label>模板ID <span class="r">*</span></label><input id="sm_tid" placeholder="输入模板ID"></div>
+            <div class="fr"><label>优先级</label><select id="sm_pri"><option value="1">低</option><option value="2" selected>中</option><option value="3">高</option></select></div>
+          </div>
+          <div class="fr">
+            <label>模板变量 <span class="h">键值对，替换模板中的 ${key}</span></label>
+            <div id="td_box"><div class="td-row"><input placeholder="变量名" value="userName"><input placeholder="变量值" value="张三"><button class="btn-rm" onclick="rmTd(this)">&times;</button></div></div>
+            <button class="btn-add" onclick="addTd()">+ 添加变量</button>
+          </div>
+          <div class="fr"><label>定时发送时间戳 <span class="h">毫秒，留空立即发送</span></label><input id="sm_ts" placeholder="留空立即发送"></div>
+          <div class="br"><button class="btn btn-p" onclick="api_send()">发送请求</button></div>
+          <div class="rp" id="r6"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 查询记录 -->
+    <div class="sec" id="s7">
+      <div class="card">
+        <div class="card-h"><span class="m bg">GET</span><span class="p">/msg/get_msg_record</span><span class="d">根据消息ID查询记录</span></div>
+        <div class="card-b">
+          <div class="fr"><label>消息ID <span class="r">*</span></label><input id="gr_mid" placeholder="输入消息ID"></div>
+          <div class="br"><button class="btn btn-p" onclick="api_record()">发送请求</button></div>
+          <div class="rp" id="r7"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 记录列表 -->
+    <div class="sec" id="s8">
+      <div class="card">
+        <div class="card-h"><span class="m bg">GET</span><span class="p">/msg/get_msg_record_list</span><span class="d">分页获取消息记录</span></div>
+        <div class="card-b">
+          <div class="fg">
+            <div class="fr"><label>页码</label><input id="rl_pn" type="number" value="1" min="1"></div>
+            <div class="fr"><label>每页条数</label><input id="rl_ps" type="number" value="10" min="1" max="100"></div>
+          </div>
+          <div class="br"><button class="btn btn-p" onclick="api_rlist()">发送请求</button></div>
+          <div class="rp" id="r8"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function base(){
+  var h=document.getElementById('sHost').value.trim()||'localhost';
+  var p=document.getElementById('sPort').value.trim()||'8080';
+  return 'http://'+h+':'+p;
+}
+function nav(el){
+  document.querySelectorAll('.nav-i').forEach(function(n){n.classList.remove('a')});
+  el.classList.add('a');
+  document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('a')});
+  document.getElementById(el.dataset.t).classList.add('a');
+}
+function hl(j){
+  return j.replace(/("(\\u[\da-fA-F]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,function(m){
+    var c='color:#b5cea8';
+    if(/^"/.test(m))c=/:$/.test(m)?'color:#9cdcfe':'color:#ce9178';
+    else if(/true|false/.test(m))c='color:#569cd6';
+    else if(/null/.test(m))c='color:#569cd6';
+    return '<span style="'+c+'">'+m+'</span>';
+  });
+}
+function showR(id,d,st,t){
+  var p=document.getElementById(id);
+  var ok=st>=200&&st<300;
+  p.innerHTML='<div class="rh"><h4>响应结果</h4><span class="sb '+(ok?'ok':'er')+'">'+st+' '+(ok?'OK':'Error')+'</span></div><div class="rb">'+hl(JSON.stringify(d,null,2))+'</div><div class="rm"><span>耗时: '+t+'ms</span><span>时间: '+new Date().toLocaleTimeString()+'</span></div>';
+}
+function showTbl(id,recs,tot,pn,ps,cols){
+  var p=document.getElementById(id);
+  var tp=Math.ceil(tot/ps);
+  var h='<div class="rh"><h4>查询结果</h4><span class="sb ok">共 '+tot+' 条</span></div>';
+  if(recs&&recs.length){
+    h+='<div class="tw"><table class="dt"><thead><tr>';
+    cols.forEach(function(c){h+='<th>'+c.l+'</th>'});
+    h+='</tr></thead><tbody>';
+    recs.forEach(function(r){
+      h+='<tr>';
+      cols.forEach(function(c){var v=r[c.k];if(v==null)v='-';h+='<td title="'+String(v)+'">'+v+'</td>'});
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+    h+='<div class="pg"><button onclick="pgA(\''+id+'\',\'prev\')" '+(pn<=1?'disabled':'')+'>上一页</button><span class="pi">第 '+pn+'/'+tp+' 页</span><button onclick="pgA(\''+id+'\',\'next\')" '+(pn>=tp?'disabled':'')+'>下一页</button></div>';
+  }else{
+    h+='<div style="text-align:center;padding:32px;color:#999">暂无数据</div>';
+  }
+  p.innerHTML=h;
+}
+async function call(m,ph,b,id){
+  var p=document.getElementById(id);
+  p.innerHTML='<div class="rh"><h4>请求中...</h4><span class="sb ld">Loading</span></div>';
+  var u=base()+ph;
+  var o={method:m,headers:{}};
+  if(b!==null){o.headers['Content-Type']='application/json';o.body=JSON.stringify(b)}
+  var s=performance.now();
+  try{
+    var r=await fetch(u,o);
+    var t=Math.round(performance.now()-s);
+    var d=await r.json();
+    showR(id,d,r.status,t);
+    return d;
+  }catch(e){
+    var t=Math.round(performance.now()-s);
+    p.innerHTML='<div class="rh"><h4>请求失败</h4><span class="sb er">Error</span></div><div class="rb" style="color:#ef9a9a">连接失败: '+e.message+'\n\n请确认:\n1. 后端服务已启动\n2. 地址和端口正确\n3. CORS 已配置</div><div class="rm"><span>耗时: '+t+'ms</span></div>';
+    return null;
+  }
+}
+async function ping(){
+  var d=document.getElementById('dot');d.className='dot';
+  try{var r=await fetch(base()+'/msg/get_template_list?pageNum=1&pageSize=1',{signal:AbortSignal.timeout(5000)});d.className=r.ok?'dot on':'dot off'}catch(e){d.className='dot off'}
+}
+function toast(m,t){var e=document.createElement('div');e.className='toast '+(t||'ok');e.textContent=m;document.body.appendChild(e);setTimeout(function(){e.remove()},3000)}
+function addTd(){var b=document.getElementById('td_box');var r=document.createElement('div');r.className='td-row';r.innerHTML='<input placeholder="变量名"><input placeholder="变量值"><button class="btn-rm" onclick="rmTd(this)">&times;</button>';b.appendChild(r)}
+function rmTd(btn){var b=document.getElementById('td_box');if(b.children.length>1)btn.parentElement.remove()}
+
+async function api_create(){
+  var b={name:v('c_name'),signName:v('c_sign'),sourceId:v('c_src'),channel:+v('c_ch'),subject:v('c_sub'),content:v('c_ct')};
+  var d=await call('POST','/msg/create_template',b,'r1');
+  if(d&&d.code===200)toast('模板创建成功，ID: '+d.data);
+}
+async function api_get(){var tid=v('g_tid');if(!tid)return toast('请输入模板ID','er');await call('GET','/msg/get_template?templateId='+encodeURIComponent(tid),null,'r2')}
+async function api_update(){
+  var b={id:+v('u_id')};if(v('u_tid'))b.templateId=v('u_tid');if(v('u_name'))b.name=v('u_name');if(v('u_sign'))b.signName=v('u_sign');if(v('u_src'))b.sourceId=v('u_src');if(v('u_ch'))b.channel=+v('u_ch');if(v('u_st'))b.status=+v('u_st');if(v('u_sub'))b.subject=v('u_sub');if(v('u_ct'))b.content=v('u_ct');
+  await call('POST','/msg/update_template',b,'r3');
+}
+async function api_del(){var tid=v('d_tid');if(!tid)return toast('请输入模板ID','er');await call('POST','/msg/delete_template?templateId='+encodeURIComponent(tid),null,'r4')}
+async function api_tlist(){
+  var pn=v('tl_pn'),ps=v('tl_ps');
+  var d=await call('GET','/msg/get_template_list?pageNum='+pn+'&pageSize='+ps,null,'r5');
+  if(d&&d.code===200&&d.data){
+    showTbl('r5',d.data.records,d.data.total,d.data.pageNum,d.data.pageSize,[{k:'id',l:'ID'},{k:'templateId',l:'模板ID'},{k:'name',l:'名称'},{k:'sourceId',l:'业务ID'},{k:'channel',l:'渠道'},{k:'subject',l:'主题'},{k:'status',l:'状态'}]);
+  }
+}
+async function api_send(){
+  var td={};document.querySelectorAll('#td_box .td-row').forEach(function(r){var i=r.querySelectorAll('input');var k=i[0].value.trim(),val=i[1].value.trim();if(k)td[k]=val});
+  var b={to:v('sm_to'),subject:v('sm_sub'),templateId:v('sm_tid'),priority:+v('sm_pri'),templateData:td};
+  if(v('sm_ts'))b.sendTimestamp=+v('sm_ts');
+  var d=await call('POST','/msg/send_msg',b,'r6');
+  if(d&&d.code===200)toast('消息发送成功，ID: '+d.data);
+}
+async function api_record(){var mid=v('gr_mid');if(!mid)return toast('请输入消息ID','er');await call('GET','/msg/get_msg_record?msgId='+encodeURIComponent(mid),null,'r7')}
+async function api_rlist(){
+  var pn=v('rl_pn'),ps=v('rl_ps');
+  var d=await call('GET','/msg/get_msg_record_list?pageNum='+pn+'&pageSize='+ps,null,'r8');
+  if(d&&d.code===200&&d.data){
+    showTbl('r8',d.data.records,d.data.total,d.data.pageNum,d.data.pageSize,[{k:'id',l:'ID'},{k:'msgId',l:'消息ID'},{k:'sourceId',l:'业务ID'},{k:'channel',l:'渠道'},{k:'to',l:'接收方'},{k:'subject',l:'主题'},{k:'templateId',l:'模板ID'},{k:'status',l:'状态'},{k:'retryCount',l:'重试次数'}]);
+  }
+}
+function pgA(id,act){
+  if(id==='r5'){var p=document.getElementById('tl_pn');if(act==='next')p.value=+p.value+1;else if(act==='prev'&&+p.value>1)p.value=+p.value-1;api_tlist()}
+  else if(id==='r8'){var p=document.getElementById('rl_pn');if(act==='next')p.value=+p.value+1;else if(act==='prev'&&+p.value>1)p.value=+p.value-1;api_rlist()}
+}
+function v(id){return document.getElementById(id).value}
+document.addEventListener('DOMContentLoaded',function(){ping()});
+</script>
+</body>
+</html>

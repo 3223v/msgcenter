@@ -9,5 +9,6 @@ public class Constants {
     public static final String  REDIS_KEY_RATE_LIMIT_COUNT_TIMER= "XMSG_rate_limit_count_timer";
     public static final String  REDIS_KEY_TEMPLATE= "XMSG_template_";
     public static final String  REDIS_KEY_MES_RECORD= "XMSG_msgrecord_";
+    public static final String  REDIS_CACHE_EMPTY= "EMPTY";
 
 }

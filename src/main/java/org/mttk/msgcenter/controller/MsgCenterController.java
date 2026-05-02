@@ -3,9 +3,11 @@ package org.mttk.msgcenter.controller;
 
 import jakarta.annotation.Resource;
 import org.apache.ibatis.annotations.Update;
+import org.mttk.msgcenter.model.dto.PageReq;
 import org.mttk.msgcenter.model.dto.SendMsgReq;
 import org.mttk.msgcenter.model.entity.MsgRecordModel;
 import org.mttk.msgcenter.model.entity.TemplateModel;
+import org.mttk.msgcenter.model.vo.PageResult;
 import org.mttk.msgcenter.model.vo.ResponseEntity;
 import org.mttk.msgcenter.service.MsgRecordService;
 import org.mttk.msgcenter.service.SendMsgService;
@@ -78,6 +80,26 @@ public class MsgCenterController {
         MsgRecordModel msgRecordModel= msgRecordService.GetMsgRecordWithCache(msgId);
         ResponseEntity<MsgRecordModel> responseEntity = new ResponseEntity();
         responseEntity.setData(msgRecordModel);
+        responseEntity.setMsg("success");
+        responseEntity.setCode(200);
+        return responseEntity;
+    }
+
+    @GetMapping("/get_template_list")
+    public ResponseEntity<PageResult<TemplateModel>> getTemplateList(PageReq pageReq) {
+        PageResult<TemplateModel> pageResult = templateService.GetTemplateList(pageReq);
+        ResponseEntity<PageResult<TemplateModel>> responseEntity = new ResponseEntity();
+        responseEntity.setData(pageResult);
+        responseEntity.setMsg("success");
+        responseEntity.setCode(200);
+        return responseEntity;
+    }
+
+    @GetMapping("/get_msg_record_list")
+    public ResponseEntity<PageResult<MsgRecordModel>> getMsgRecordList(PageReq pageReq) {
+        PageResult<MsgRecordModel> pageResult = msgRecordService.GetMsgRecordList(pageReq);
+        ResponseEntity<PageResult<MsgRecordModel>> responseEntity = new ResponseEntity();
+        responseEntity.setData(pageResult);
         responseEntity.setMsg("success");
         responseEntity.setCode(200);
         return responseEntity;

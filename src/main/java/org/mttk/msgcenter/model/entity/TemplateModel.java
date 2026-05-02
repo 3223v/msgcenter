@@ -21,11 +21,11 @@ public class TemplateModel {
 
     private String sourceId;
 
-    private int channel;
+    private Integer channel;
 
     private String subject;
 
     private String content;
 
-    private int status;
+    private Integer status;
 }

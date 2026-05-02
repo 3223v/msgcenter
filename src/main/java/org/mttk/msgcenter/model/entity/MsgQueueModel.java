@@ -1,5 +1,6 @@
 package org.mttk.msgcenter.model.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -9,7 +10,7 @@ public class MsgQueueModel {
     private Long id;
 
     private String msgId;
-
+    @TableField("`to`")
     private String to;
 
     private String subject;

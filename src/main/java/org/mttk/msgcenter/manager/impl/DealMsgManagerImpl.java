@@ -63,6 +63,7 @@ public class DealMsgManagerImpl implements DealMsgManager {
 
         // 5. 调用具体策略服务去推送消息
         msgService.pushMsg(base);
+        log.info("发送逻辑已经调用");
 
         // 6. 存储消息发送记录
         try{
