@@ -45,7 +45,7 @@ mybatis-plus:
 
 # ========== 业务配置 ==========
 send-msg-conf:
-  mysql-as-mq: false
+  mysql-as-mq: true
   open-cache: true
   max-retry-count: 5
   email-host: smtp.qq.com
